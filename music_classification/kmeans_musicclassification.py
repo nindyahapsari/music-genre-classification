@@ -46,7 +46,7 @@ def parseAudio(parentDirectory, subDirectories, fileExtension="*.wav"):
                 labels = np.append(labels, 3)
             else :
                 labels = np.append(labels, 0)
-        return np.array(features), np.array(labels, dtype=np.int)
+    return np.array(features), np.array(labels, dtype=np.int)
 
 training = "training_dataset"
 test = "test_dataset"
@@ -54,11 +54,14 @@ subDirectories = ["pop", "classical", "hiphop", "rock"]
 trainingFeatures, trainingLabels = parseAudio(training, subDirectories)
 testFeatures, testLabels = parseAudio(test, subDirectories)
 
-
 # training loop #
-model = KMeans(n_clusters=4)
+model = KMeans(init="random", n_clusters=4, n_init=10, max_iter=300)
 model.fit(trainingFeatures)
 
+
+# print("y predict: {}".format(y_predict.predict(trainingFeatures)))
 # test results #
 print(model.labels_)
+print(testFeatures)
+# print(model.cluster_centers_)
 
