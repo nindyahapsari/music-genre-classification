@@ -48,20 +48,23 @@ def parseAudio(parentDirectory, subDirectories, fileExtension="*.wav"):
                 labels = np.append(labels, 0)
     return np.array(features), np.array(labels, dtype=np.int)
 
-training = "training_dataset"
+# raw audio files #
+training = "smaller_training_dataset"
 test = "test_dataset"
 subDirectories = ["pop", "classical", "hiphop", "rock"]
 trainingFeatures, trainingLabels = parseAudio(training, subDirectories)
-testFeatures, testLabels = parseAudio(test, subDirectories)
+# testFeatures, testLabels = parseAudio(test, subDirectories)
+# print("training features first index: {}".format(trainingFeatures[0]))
+# print("length: {}".format(len(trainingFeatures[0])))
+print("training labels, true labels: {}".format(trainingLabels))
 
 # training loop #
-model = KMeans(init="random", n_clusters=4, n_init=10, max_iter=300)
-model.fit(trainingFeatures)
+model = KMeans(n_clusters=4)
+y_predict = model.fit(trainingFeatures)
 
-
-# print("y predict: {}".format(y_predict.predict(trainingFeatures)))
 # test results #
-print(model.labels_)
-print(testFeatures)
-# print(model.cluster_centers_)
+print("y predict labels: {}".format(y_predict.labels_))
+
+
+# to check the accuracy, look at the true labels, which the labeled data and compare how well the k-means model predict the out comes. 
 
