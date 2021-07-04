@@ -5,7 +5,8 @@ import tensorflow.keras as keras
 import matplotlib.pyplot as plt
 
 # path to json file that stores the mfcc and genres labels for each processing segment
-data_path = "music_data.json"
+data_path = "nn_data.json"
+SAVED_MODEL_PATH = "nn_model.h5"
 
 def load_data(data_path):
     with open(data_path, "r") as fp:
@@ -84,18 +85,6 @@ def build_model(input_shape):
 
     return model
 
-def predict(model, X, y):
-    # add a dimension to input data for sample - model.predict() expects a 4d array in this case
-    X = X[np.newaxis, ...] # array shape (1, 130, 13, 1)
-
-    # perform prediction
-    prediction= model.predict(x)
-
-    # get index with max value
-    predicted_index = np.argmax(prediction, axis=1)
-
-    print("Target: {}, Predicted label {}".format(y, predicted_index))
-
 
 
 if __name__ == '__main__':
@@ -116,8 +105,6 @@ if __name__ == '__main__':
     # train model
     history = model.fit(X_train, y_train, validation_data=(X_validation, y_validation), batch_size=32, epochs=30)
 
-  
-
     # plot accuracy and error as a function of the epochs
     plot_history(history)
 
@@ -125,9 +112,7 @@ if __name__ == '__main__':
     test_loss, test_acc = model.evaluate(X_test, y_test, verbose=2)
     print('\nTest accuracy:', test_acc)
 
-    # pick a sample to predict from the test set
-    x_to_predict = X_test[100]
-    y_to_predict = y_test[100]
+    # save model
+    model.save(SAVED_MODEL_PATH)
 
-    # predict sample
-    predict(model, X_to_predict, y_to_predict)
+    
