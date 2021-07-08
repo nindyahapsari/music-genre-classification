@@ -41,7 +41,7 @@ class _Genre_Classification_Prediction:
 
         # get index with max value
         predicted_index = np.argmax(predictions)
-        print("predicted index: {}".format(predicted_index))
+        # print("predicted index: {}".format(predicted_index))
         predicted_genre = self._mapping[predicted_index]
 
         return predicted_genre

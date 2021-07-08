@@ -4,18 +4,15 @@
 
 {% block body %}
 <div class="container my-4">
-<h1>Music Genre Classification</h1>
-  <form>
-  <div class="form-group">
+  <h1>Music Genre Classification</h1>
+  <form action="/" method="POST" enctype="multipart/form-data">
+
     <label for="sampleMusic">Upload your music here</label>
-    <input type="file" class="form-control-file" id="sampleMusic" aria-describedby="sampleMusic">
+    <input id="audioFile" name="audioFile" type="file" enctype="multipart/form-data" class="form-control-file" id="sampleMusic" aria-describedby="sampleMusic">
     <small id="musicFileInfo" class="form-text text-muted">Music file should be in WAV format and 30 seconds long</small>
-  </div>
-  <div class="text-center font-weight-bold">
-    <h3>Here is the Genre</h3>
-  </div>
-  <button type="submit" class="btn btn-primary">Submit</button>
-</form>
+    <h3>Here is the Genre {{ result_prediction }}</h3>
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </form>
 </div>
 
 
