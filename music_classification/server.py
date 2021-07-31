@@ -8,6 +8,9 @@ import requests
 import json
 import secrets
 import string
+from dotenv import load_dotenv
+
+load_dotenv()  # take environment variables from .env.
 
 app = Flask(__name__)
 
@@ -16,11 +19,7 @@ state = ''.join(
     secrets.choice(string.ascii_uppercase + string.digits) for _ in range(16)
 )
 
-user_id = "BQAIMEjmZGoSF2DWyrYOGaVerhX3-M-ZJ_pyn3dpVtjq2ZQ1bB1a_yVz323tMb6Rv9t9As_xdBu41QQqfwx3nwPAyCm4qry2Nid_H2cIzvrH_VE8wqO6w4Hgbr5lS-l25uc-z6t6E8ap3vvpQevjj9PwA8OuC911I7cc9wF-uKb4D2jcPRg432aKsaP_hA"
-
-# access_token_expired = "BQCg0aoO01sEV8fz9UAH1zZXxl5b8aTjUUrfLztzch5fZ3sOxoIwoHmOnsXz1gRYUS1xmzR_CesPY1L90WJvNDEdUFAXvdlHtwYrdg4VMhIM79kuQQ1c0tC_Xa499D8esDJhKnGOLgaC1f3gemDVmLD_qHfzMJ_dy2UPY8PsLuOvxda2y_Y"
-
-
+user_id = os.getenv("USER_ID") 
 
 ################################### END POINTS ###############################################
 end_point_url = "https://api.spotify.com/v1/recommendations?"
@@ -28,47 +27,69 @@ auth_url = "https://accounts.spotify.com/authorize?"
 token_url = "https://accounts.spotify.com/api/token?"
 ########################################################################################
 
-client_id="4aff65a65ed246e2a1e5ac032b1d0ba8"
-client_secret="6258cec6e50c47eb803e75c9b20bfedd"
+client_id= os.getenv("CLIENT_ID")
+client_secret= os.getenv("CLIENT_SECRET")
 redirect_uri = "http://127.0.0.1:5000/auth"
 #redirect_uri=url_for('authorize', _external=True)
 scope="playlist-modify-private"
-code = "AQDKYTYHxcsahFx7l3R3u5VjUAAG_7YuwP7W2NAQ2mm6OvbZ7zWsQL1GiDdllKJT-Lxe1pkdJcIeoFBLZUvLTnarsQvpp2Gxr3GXvp7upcriHwjENTapC3OWzqyX10bky8u9r0XUPurpsIS8SFSzQIWIAxZ1eWdIg9LtCnbD-bpXnFWPfc3UegogRnfBePuscROhHpnIeQ"
+code = os.getenv("CODE")
+refresh_token = os.getenv("REFRESH_TOKEN") 
+encoded_client_secret = os.getenv("ENCODED_CLIENT_SECRET")
 
-encoded_client_secret = "NGFmZjY1YTY1ZWQyNDZlMmExZTVhYzAzMmIxZDBiYTg6NjI1OGNlYzZlNTBjNDdlYjgwM2U3NWM5YjIwYmZlZGQ="
+predicted_genre_nn =""
 
-credent_data = {
-    'grant_type' : 'client_credentials'
-}
-
-@app.route("/", methods=['POST', 'GET'])
-# @app.route("/")
+@app.route("/")
 def index():
-    if request.method == "POST":
-        predicted_genre = prediction()
-        return render_template('index.html', result_prediction=predicted_genre)
+    return render_template('index.html')
+
+@app.route("/result", methods=['POST'])
+def result():
+    predicted_genre = prediction()
+    predicted_genre_nn = predicted_genre
+
+    if predicted_genre_nn != "":
+        playlist_id = playlist(predicted_genre_nn)
+        print("playlist-id:", playlist_id)
     else:
-        return render_template('index.html')
+        print("prediction result not yet assigned")
+
+    # pack_result = [predicted_genre, playlist_url]
+
+    return redirect(f'/finalresult/{predicted_genre}/{playlist_id}')
+
+@app.route("/finalresult/<predicted_genre>/<playlist_id>")
+def finalresult(predicted_genre, playlist_id):
+    print("result:", {predicted_genre}, "url:", {playlist_id})
+    playlist_url_emb=f"https://open.spotify.com/embed/playlist/{playlist_id}"
+
+    return render_template('result.html', predicted_genre=predicted_genre, playlist_url=playlist_url_emb) 
+    
+    
+
+
 
 
 def prediction():
      # get audio file and save
-        audio_file = request.files["audioFile"]
-        file_name = str(random.randint(0, 100000))
-        audio_file.save(file_name)
-        print ("Audio file:", audio_file)
+     audio_file = request.files["audioFile"]
+     file_name = str(random.randint(0, 100000))
+     audio_file.save(file_name)
+     print ("Audio file:", audio_file)
 
-        # instantiate the singleton to get prediction
-        gcp = Genre_Classification_Prediction()
-        predicted_genre = gcp.predict(file_name)
+     # instantiate the singleton to get prediction
+     gcp = Genre_Classification_Prediction()
+     predicted_genre = gcp.predict(file_name)
 
-        # we dont need the file anymore, delete the file
-        os.remove(file_name)
+     # we dont need the file anymore, delete the file
+     os.remove(file_name)
 
-        # the result from the prediction
-        result_prediction = predicted_genre
-        print("result prediction:", result_prediction)
-        return result_prediction
+     # the result from the prediction
+     result_prediction = predicted_genre
+     predicted_genre_nn = result_prediction
+     print("PREDICTED GENRE:", predicted_genre)
+     return result_prediction
+
+
 
 ###############################################################################################
 # NEXT STEP FOR PLAYLIST:
@@ -77,41 +98,51 @@ def prediction():
 # 3. playlist generator should not be in different page, it should be in the same page with genre classification which index page
 ###############################################################################################
 
-@app.route("/playlist")
-def playlist():
-
-#     auth_code = get_auth_code()
-    # token_res = get_token()
-    # # acc_token = token_res.get('access_token')
-    # print("REF TOKEN:", token_res)
-
-
-
+# @app.route("/playlist")
+def playlist(genre_predicted):
     # filter
-    limit=13
+    limit=request.form['numSongs'] 
     market="US"
-    seed_genres="pop"
-    target_danceability=0.3
+    target_danceability=request.form['danceability']
     uris=[]
     created_playlist=[]
     # seed_tracks='55SfSsxneljXOk5S3NVZIW'
-    static_acc_token = "BQB5A3Zl4y2L0wfYlbOKAXPFJ9c5iCkBGD1G92mNi-C-3g-AMXLUeV1j2v7a_W8nnxEAvk9p4SCeKk-A_lLYOiv3V0RHwlcM6jH1Sjzz5uJim5fQynAEt-VKSk4EO0mRa-UZtsOJNWeH0ccEQ7gQkTNheEVTZGBut0WeAOdptVkwIVwZd5A"
-   
+
+    if genre_predicted  != "":
+        if genre_predicted == "hiphop":
+            seed_genres = "hip-hop"
+        else:
+            seed_genres=genre_predicted
+        print("seed_genres", seed_genres)
+    else:
+        print("variable not assign")
+
+    static_acc_token = os.getenv("STATIC_ACC_TOKEN")
+    static_acc_token = static_acc_token
+    new_access_token = req_new_token()
+    # print("NEW ACCESS TOKEN:", new_access_token)
+
     query = f'{end_point_url}limit={limit}&market={market}&seed_genres={seed_genres}&target_danceability={target_danceability}'
 
     response = requests.get(query, headers={"Content-Type": "application/json", "Authorization": f"Bearer {static_acc_token}"})
     json_response = response.json()
 
-    if response.status_code == 200:
+    if (json_response['error']['message'] == "The access token expired" and response.status_code == 401):
+        print("Trying the request again, Error message:{}".format(json_response['error']['message']))
+        response = requests.get(query, headers={"Content-Type": "application/json", "Authorization": f"Bearer {new_access_token}"})
+        json_response = response.json()
+        # print("response:", response.status_code, "json_response:", json_response)
         for i, j in enumerate(json_response['tracks']):
             uris.append(j['uri'])
-            # print(f"\"{i['name']}\" by {i['artists'][0]['name']}")
             print(f"{i+1}) \"{j['name']}\" by {j['artists'][0]['name']}")
             created_playlist.append(f"{i+1}) \"{j['name']}\" by {j['artists'][0]['name']}")
-            # return json.dumps(json_response['tracks'])
-                        # return json_response['error']['message']
+
     else:
-        print("Error message . {}".format(json_response['error']['message']))
+        for i, j in enumerate(json_response['tracks']):
+            uris.append(j['uri'])
+            print(f"{i+1}) \"{j['name']}\" by {j['artists'][0]['name']}")
+            created_playlist.append(f"{i+1}) \"{j['name']}\" by {j['artists'][0]['name']}")
+
 
 
 
@@ -125,26 +156,35 @@ def playlist():
     })
 
     new_empt_playlist_url = f"https://api.spotify.com/v1/users/11136885927/playlists?"
-    res_playlist = requests.post(new_empt_playlist_url, data=data_playlist, headers={"Content-Type": "application/json", "Authorization": f"Bearer {static_acc_token}"})
-    print("RES_PLAYLIST:", res_playlist.json())
+    res_playlist = requests.post(new_empt_playlist_url, data=data_playlist, headers={"Content-Type": "application/json", "Authorization": f"Bearer {new_access_token}"})
+    # print("RES_PLAYLIST:", res_playlist.json())
     playlist_url = res_playlist.json()['external_urls']['spotify']
     print(res_playlist.status_code)
 
     ########## Filling the empty playlist #################################
     playlist_res = res_playlist.json()
     playlist_id = playlist_res.get('id')
-    print("playlist ID:", playlist_id)
+    # print("playlist ID:", playlist_id)
     fill_playlist_url = f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks?"
     data_fill_playlist = json.dumps({ "uris" : uris })
-    print("data_fill_playlist:", data_fill_playlist)
-    res_playlist_fill = requests.post(fill_playlist_url, data=data_fill_playlist, headers={"Content-Type": "application/json", "Authorization": f"Bearer {static_acc_token}"})
-    print("res playlist:", res_playlist_fill.json())
+    # print("data_fill_playlist:", data_fill_playlist)
+    res_playlist_fill = requests.post(fill_playlist_url, data=data_fill_playlist, headers={"Content-Type": "application/json", "Authorization": f"Bearer {new_access_token}"})
+    # print("res playlist:", res_playlist_fill.json())
 
-    # ####### Print the playlist Url ###############
+    ######## Print the playlist Url ###############
     print(f'Your Playlist is ready at {playlist_url}')
+    playlist_url2 = f"https://open.spotify.com/embed/playlist/{playlist_id}"
+    print(f'Your Embed Playlist is ready at {playlist_url2}')
 
     #return statement should be outside loop area
-    return "this have to out from the loop"                
+    return playlist_id
+
+
+
+
+
+
+
 
 ####################################################################################################
 # STEPS FOR AUTH TOKEN/ACCESS TOKEN:
@@ -161,18 +201,22 @@ def playlist():
 def auth_token():
     auth_code = get_auth_code()
     get_token()
-    return auth_code 
-    # cred_code = credentials_code()
-    # print("CREDENTIALS_CODE: ", cred_code['access_token'])
-    # token = cred_code['access_token']
-    # return token
-    
+    return auth_code
+
+
+# put refresh token in env file
 def req_new_token():
-    data={'grant_type' : 'refresh_token', 'refresh_token': 'AQDWINzVeg5MhzgcQGSMVTs9rTX-h0AY1wnVl6XsiBgfQ3b51FNk92bHyfV1vhDbYOCmRrtrnOzZ7bqgk1u7FONMuD0K3a4bxbszbAmA5MAGRgTqj3tghRWt9QhMWXfoc10'}
-    response = requests.post(token_url, data=data, headers={'Authorization': f"{encoded__client_secret}"})
+    data={
+        'grant_type' : 'refresh_token', 
+        'refresh_token' : refresh_token 
+    }
+    response = requests.post(token_url, data=data, headers={'Authorization': f"Basic {encoded_client_secret}"})
     json_res = response.json()
-    print("refrsh func", json_res)
-    
+    refresh_access_token = json_res['access_token']
+    print("REFRESH ACCESS TOKEN:", refresh_access_token)
+    return refresh_access_token
+
+
 def get_token():
     # for access_token and refresh_token
     res_data = request.args.get('code')
@@ -183,26 +227,17 @@ def get_token():
         'redirect_uri' : redirect_uri
     }
 
-   #  auth_data = {
-            # 'client_id': client_id,
-            # 'response_type': 'code',
-            # 'redirect_uri' : redirect_uri
-            # 'scope' : scope
-    # }
-
     # query = f"{token_url}grant_type={token}&code={code}&redirect_uri={redirect_url}"
 
     response = requests.post(token_url, data=data, headers={"Authorization": f"Basic {encoded_client_secret}"})
     json_response=response.json()
-    print("JSON RESPONSE:", json_response)
     refresh_token = json_response.get('refresh_token')
-    print("REFRESH TOKEN: ", refresh_token)
-    #print("THE REQUEST FROM TOKEN FUNCT:", json_response['refresh_token'])
     return refresh_token
 
 
 def get_auth_code():
-# for new auth_code
+    # url encoded /auth: http%3A%2F%2F127.0.0.1%3A5000%2Fauth
+    # for new auth_code
     auth_response = make_response(redirect("https://accounts.spotify.com/authorize?client_id=4aff65a65ed246e2a1e5ac032b1d0ba8&response_type=code&redirect_uri=http%3A%2F%2F127.0.0.1%3A5000%2Fauth&scope=playlist-modify-private"))
     auth_response.set_cookie('spotify_auth_state', state)
     res_data = request.args.get('code')
@@ -211,16 +246,6 @@ def get_auth_code():
 
 
 
-def credentials_code():
-            credent_response = requests.post(token_url, data=credent_data, headers={'Authorization' : f'Basic {encoded_client_secret}'})
-            if credent_response.status_code == 200:
-                print("STATUS_CODE 200 success!")
-                cre_json_res = credent_response.json()
-                print("credentials access token: ", cre_json_res)
-                return cre_json_res
-            else :
-                error_status = credent_response.status_code
-                print(error_status)
 
 
 if __name__ == '__main__':
