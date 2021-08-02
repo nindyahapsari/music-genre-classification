@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<div style="min-height: 90vh;" class="container d-flex align-items-center justify-content-center my-4 ">
+  <div style="max-width: 39.375rem; height:45rem;" class="p-4 bgGlassCard">
+    <div class="d-flex justify-content-center align-items-center flex-column">
+
+
+      <h2 class="text-white mb-4">A short manual on how to use this application 📓</h2> 
+
+      <p class="text-white" style="letter-spacing: 2px; font-size: 0.75rem;">First things first, this web application is part of my final bachelor project 👩‍🎓</p>
+
+      <p class="text-white" style="letter-spacing: 3px; font-size: 0.75rem;">At the moment, the network can only identify 4 music genres, which are pop, rock, hip-hop and classical.
+      These features will be extended in the future.  </p>
+
+      <p class="text-white" style="letter-spacing: 2px; font-size: 0.75rem;">
+      The audio that you want to classify must be 30 seconds long and in a wav format. 
+      You can upload the 30 seconds audio sample and choose how many music track do you want in the spotify playlist (min 1 song track).
+      The danceability is you tempo and you can decide either you want a slow chill music or energetic fast music 🎵 
+      </p>
+
+      <p class="text-white" style="letter-spacing: 2px; font-size: 0.75rem;">
+      After the result is given, the application will suggest spotify music playlist that include music that have the same genre. 
+      </p>
+
+      <p class="text-white" style="letter-spacing: 2px; font-size: 0.75rem;">
+      You can copy or follow your music playlist to your own spotify account.
+      </p>
+      <p class="text-white" style="letter-spacing: 2px; font-size: 0.75rem;">
+      At the moment, the application is maintain by the owner, Nindya. You can also find the source code at <a targer=_blank href="https://github.com/nindyahapsari/music-genre-classification">this</a> github page.
+      </p>
+
+      <div class="my-4 d-flex flex-row justify-content-center" style="width: 100%;">
+        <div class="mx-3">
+          <a target=_blank href="https://www.linkedin.com/in/nindya-hapsari-a5000a153/">
+          <img class="img-fluid" style="width:1.25rem; height:1.25rem;" src="{{ url_for('static', filename='icons/linkedin-square.svg') }}" />
+          </a>
+        </div>
+        <div class="mx-3">
+          <a target=_blank href="https://github.com/nindyahapsari">
+          <img class="img-fluid" style="width:1.25rem; height:1.25rem;" src="{{ url_for('static', filename='icons/github.svg') }}" />
+          </a>
+
+        </div>
+        <div class="mx-3">
+          <a target=_blank href="https://www.behance.net/nindyahapsari">
+          <img class="img-fluid" style="width:1.25rem; height:1.25rem;" src="{{ url_for('static', filename='icons/behance.svg') }}" />
+
+          </a>
+        </div>
+        <div class="mx-3">
+          <a target=_blank href="https://dribbble.com/nindyaturtle">
+          <img class="img-fluid" style="width:1.25rem; height:1.25rem;" src="{{ url_for('static', filename='icons/dribbble.svg') }}" />
+          </a>
+        </div>
+      </div>
+
+      <p class="text-white" style="letter-spacing: 2px; font-size: 0.75rem; z-index:10;">
+      Photo Credit : Photo by <a target=_blank href="https://unsplash.com/@jasebloor?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Jase Bloor</a> on <a target=_blank href="https://unsplash.com/?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>    
+      </p>
+
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}

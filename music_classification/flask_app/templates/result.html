@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+
+{% block body %}
+<div style="min-height: 90vh;" class="container d-flex align-items-center justify-content-center my-4 w-50 ">
+  <div style="max-width: 39.375rem; height:45rem;" class="p-5 glassCard">
+    <div class="d-flex justify-content-center align-items-center flex-column">
+      <h4 class="text-white" style="font-weight:500;">Here is the Genre </h4>
+      <h2 class="text-white" style="font-weight:700;">{{ predicted_genre }}</h2>
+    </div>
+
+    {% if playlist_url != null %}
+    <div class="m-5 p-1 border">
+      <iframe src={{ playlist_url }} width="100%" height="380" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+    </div>
+    {% endif %}
+
+    <div class="mt-5 d-flex justify-content-center">
+      <a class="text-white" href="{{ url_for('index') }}" style="font-size:1.5rem; font-weight:600;">Predict again</a>
+    </div>
+
+  </div>
+</div>
+
+
+{% endblock %}

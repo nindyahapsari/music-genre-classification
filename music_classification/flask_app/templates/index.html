@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<div style="min-height: 90vh;" class="container my-4 d-flex justify-content-center align-items-center ">
+  <div class="glassCard mainCardContainer">
+    <div class="p-5 mainCardContainer">
+    <h1 style="z-index: 2;" class="text-white">Music Genre Classification</h1>
+    <form action="/result" method="POST" enctype="multipart/form-data">
+
+      <div class="my-5">
+        <label class="text-white" for="sampleMusic">Upload your music here</label>
+        <input style="font-family:'Orbitron', sans-serif;" id="audioFile" name="audioFile" type="file" class="my-3 form-control-file"  aria-describedby="sampleMusic">
+        <small id="musicFileInfo" class="text-white form-text">Music file should be in WAV format and 30 seconds long</small>
+      </div>
+
+      <div class="my-5">
+        <h3 class="mb-3 text-white">Create playlist on spotify</h3>
+        <div class="row">
+          <div class="col-9 form-container">
+            <label class="text-white" for="limit">Number of songs</label>
+            <input id="numSongs" name="numSongs" type="number" class="w-50 form-control-file" required>
+          </div>
+
+          <div class="col-3">
+          <label class="text-white" for="sampleMusic">Danceability</label>
+            <select id="danceability" name="danceability" required>
+              <option value="03">0.3</option>
+              <option value="04">0.4</option>
+              <option value="05">0.5</option>
+              <option value="06">0.6</option>
+              <option value="07">0.7</option>
+              <option value="08">0.8</option>
+              <option value="09">0.9</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+
+
+      <div class="d-flex justify-content-center">
+        <button type="submit" class="btn btn-lg btn-primary">Submit</button>
+      </div>
+
+    </div>
+    </form>
+
+
+
+  </div>
+</div>
+
+
+{% endblock %}
